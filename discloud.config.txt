@@ -1,0 +1,8 @@
+ID=realones
+TYPE=bot
+MAIN=main.py
+NAME=RealOnesBot
+RAM=100
+AUTORESTART=true
+VERSION=latest
+APT=tools
