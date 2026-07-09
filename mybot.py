@@ -57,7 +57,7 @@ TOKEN = os.environ.get('TOKEN')
 
 # ئەگەر ل سەر کۆمپیوتەری بی و TOKEN نەبوو، ڤێ تۆکنێ ب کار دئینیت
 if not TOKEN:
-    TOKEN = 'MTQ4NTc0Mzk2OTMxNTg0ODIzOQ.GvfxE7.FICNDPr4LDS3JV5MwiG9ha_N-2s6q-oRjnVfw0'
+    TOKEN = 'MTQ4NTc0Mzk2OTMxNTg0ODIzOQ.GSAXX6.cQwKnDwxenWa_aWTGbOjyBfTCxg8kJQozqf3SY'
 
 intents = discord.Intents.default()
 intents.message_content = True 
@@ -1301,7 +1301,7 @@ async def send_zikr_auto():
     if channel:
         selected_zikr = random.choice(zikr_list)
         embed = discord.Embed(
-            title="✨ زیکرێ ئۆتۆماتیک ✨",
+            title="✨ خواندنا زکری ژ بیر نەکە ✨",
             description=f"**{selected_zikr}**",
             color=discord.Color.from_rgb(46, 204, 113) # ڕەنگێ کەسک
         )
