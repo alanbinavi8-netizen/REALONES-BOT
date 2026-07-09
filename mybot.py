@@ -6,7 +6,9 @@ import aiohttp
 import asyncio      # بۆ کومانداێن remind و کاتژمێران پێدڤییە
 import random       # بۆ کومانداێن flip و joke و یارییان پێدڤییە
 import datetime     # بۆ کومانداێن stats و ئەنجامێن کاتژمێری پێدڤییە
-
+from  discord.ext import tasks
+import random
+from datetime import datetime
 
 # ==================== پشکا کلاسێ کێبڕکێیێ ====================
 class CustomGiveawayView(discord.ui.View):
@@ -57,7 +59,7 @@ TOKEN = os.environ.get('TOKEN')
 
 # ئەگەر ل سەر کۆمپیوتەری بی و TOKEN نەبوو، ڤێ تۆکنێ ب کار دئینیت
 if not TOKEN:
-    TOKEN = 'MTQ4NTc0Mzk2OTMxNTg0ODIzOQ.GSAXX6.cQwKnDwxenWa_aWTGbOjyBfTCxg8kJQozqf3SY'
+    TOKEN = 'MTQ4NTc0Mzk2OTMxNTg0ODIzOQ.GICZPy.SSD4gEM-atHCZu7ACi85XcJK3s0J72dmjc9MWc'
 
 intents = discord.Intents.default()
 intents.message_content = True 
@@ -1230,20 +1232,16 @@ async def setup_ticket(ctx):
     await ctx.send(embed=embed, view=TicketSelectView())
     
   #41 ZIKR
-import discord
-from discord.ext import commands, tasks
-import random
-from datetime import datetime
-
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = commands.Bot(command_prefix="!", intents=intents)
-
-# 🔴 ئایدییا چەناڵێ خۆ ل ڤێرە دابنێ
-ZIKR_CHANNEL_ID = 1524843087363313845  
-
-# لیستی هەموو زیکران ب عەرەبی یێن تەمام
+@bot.event
+async def on_ready():
+    print(f'{bot.user} چالاک بوو!')
+    
+    # 🌟 ئەڤان هەردوو هێلان ل ڤێرە زێدە بکە دا کو سیستەمێ ئۆتۆماتیک دەستپێبکات:
+    if not send_zikr_auto.is_running():
+        send_zikr_auto.start()
+    if not check_thursday_salawat.is_running():
+        check_thursday_salawat.start()
+# لیستی هەموو زیکران ب عەرەبی
 zikr_list = [
     "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",
     "سُبْحَانَ اللَّهِ الْعَظِيمِ",
@@ -1251,7 +1249,7 @@ zikr_list = [
     "أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ",
     "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ",
     "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّه",
-    "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ",
+    "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّه الْعَلِيِّ الْعَظِيمِ",
     "اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ",
     "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ",
     "صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ",
@@ -1283,49 +1281,64 @@ zikr_list = [
     "رَبِّ اغْفِرْ وَارْحَمْ وَأَنْتَ خَيْرُ الرَّاحِمِينَ"
 ]
 
-# زێدەکرنا لۆپێ بۆ زێدەبوونا زیکران د ناڤ لیستێ دا
+# زێدەکرنا لۆپێ بۆ زێدەبوونا زیکران
 for i in range(1, 201):
     zikr_list.append("اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ")
     zikr_list.append("أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ")
 
-@bot.event
-async def on_ready():
-    print(f'بۆت ب سەرکەفتیانە چالاک بوو ب {len(zikr_list)} زیکرێن جودا!')
-    send_zikr_auto.start()
-    check_thursday_salawat.start()
+# 🔴 ئایدییا چەناڵێ خۆ یێ زیکران ل ڤێرە دابنێ
+ZIKR_CHANNEL_ID = 1524843087363313845
+# --- فەرمانێن دەستی (Manual Commands) ---
 
-# تاسی ١: ناردنا زیکرێن ئاسایی هەر ٣٠ خولەکان ب شێوازێ Embed
+@bot.command(name="zikr")
+async def get_zikr(ctx):
+    selected_zikr = random.choice(zikr_list)
+    embed = discord.Embed(
+        title="✨ زیکرێ تە ✨",
+        description=f"**{selected_zikr}**",
+        color=discord.Color.from_rgb(52, 152, 219)
+    )
+    embed.set_footer(text="خودێ خێرا تە بنڤیسیت 🤍")
+    await ctx.send(embed=embed)
+
+@bot.command(name="salawat")
+async def get_salawat(ctx):
+    embed = discord.Embed(
+        title="🕌 سلاڤدان ل سەر پێغەمبەری 🕌",
+        description="**اللَّهُمَّ صَلِّ وَسَلِّم *عَلَى نَبِيِّنَا مُحَمَّدٍ ﷺ**",
+        color=discord.Color.gold()
+    )
+    embed.set_footer(text="اللَّهُمَّ صَلِّ وَسَلِّم *وَبَارِكْ عَلَيْهِ")
+    await ctx.send(embed=embed)
+
+# --- تاسیێن ئۆتۆماتیک (Automated Tasks) ---
+
 @tasks.loop(minutes=30)
 async def send_zikr_auto():
     channel = bot.get_channel(ZIKR_CHANNEL_ID)
     if channel:
         selected_zikr = random.choice(zikr_list)
         embed = discord.Embed(
-            title="✨ خواندنا زکری ژ بیر نەکە ✨",
+            title="✨ زیکرێ ئۆتۆماتیک ✨",
             description=f"**{selected_zikr}**",
-            color=discord.Color.from_rgb(46, 204, 113) # ڕەنگێ کەسک
+            color=discord.Color.from_rgb(46, 204, 113)
         )
         embed.set_footer(text="أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ 🤍")
         await channel.send(embed=embed)
 
-# تاسی ٢: پشکنینا کاتی بۆ هەر پێنجشەمبییەک ل دەمژمێر ١٠:٠٠ی شەڤێ (٢٢:٠٠)
 @tasks.loop(minutes=1)
 async def check_thursday_salawat():
-    now = datetime.now()
+    now = datetime.datetime.now()
     if now.weekday() == 3 and now.hour == 22 and now.minute == 0:
         channel = bot.get_channel(ZIKR_CHANNEL_ID)
         if channel:
             embed = discord.Embed(
                 title="🕌 شەڤا ئەینیێ (سلاڤدان ل سەر پێغەمبەری) 🕌",
-                description="**اللَّهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَى نَبِيِّنَا وَحَبِيبِنَا مُحَمَّدٍ ﷺ**\n\nشەڤا ئەینیێ یە، دلێن خۆ ڕووناک بکەن ب سلاڤدانێ ل سەر ڕوحا پاقژا پێغەمبەرێ مە.",
-                color=discord.Color.gold() # ڕەنگێ زێڕینی
+                description="**اللَّهُمَّ صَلِّ وَسَلِّم *وَبَارِكْ عَلَى نَبِيِّنَا وَحَبِيبِنَا مُحَمَّدٍ ﷺ**\n\nشەڤا ئەینیێ یە، دلێن خۆ ڕووناک بکەن ب سلاڤدانێ ل سەر ڕوحا پاقژا پێغەمبەرێ مە.",
+                color=discord.Color.gold()
             )
             embed.set_footer(text="إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ۚ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا")
-            
-            # لێدانا @everyone دگەل ئیمبێدێ
             await channel.send(content="@everyone", embed=embed)
-
-
 
 # --- Error Handling ---
 @bot.event
